@@ -257,8 +257,130 @@ function findRoute(startBuildingId, endBuildingId, dateTime = new Date()) {
   };
 }
 
+// Calculate haversine distance between two GPS coordinates (in meters)
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lng2 - lng1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+}
+
+// Find route from GPS coordinates to a building
+function findRouteFromLocation(userLat, userLng, endBuildingId, dateTime = new Date()) {
+  const endBuilding = buildings[endBuildingId];
+
+  if (!endBuilding) {
+    return { error: 'Building not found' };
+  }
+
+  // Try all combinations of starting from nearby accessible entrances
+  let bestRoute = null;
+  let minTotalTime = Infinity;
+  let bestStartBuilding = null;
+  let bestStartEntrance = null;
+  let bestWalkingDistance = 0;
+
+  // Check all buildings and their entrances
+  for (let buildingId in buildings) {
+    const building = buildings[buildingId];
+
+    for (let entrance of building.entrances) {
+      // Check if entrance is accessible
+      const accessCheck = isEntranceAccessible(entrance, dateTime);
+      if (!accessCheck.accessible) continue;
+
+      // Calculate walking distance from user location to this entrance
+      const distanceMeters = calculateDistance(
+        userLat, userLng,
+        entrance.coordinates.lat, entrance.coordinates.lng
+      );
+
+      // Convert distance to walking time (assume 1.4 m/s walking speed = ~84 m/min)
+      const walkingTimeToEntrance = Math.ceil(distanceMeters / 84);
+
+      // Skip if this entrance is too far away (more than 15 minutes walk)
+      if (walkingTimeToEntrance > 15) continue;
+
+      // Find route from this entrance to destination
+      for (let endEntrance of endBuilding.entrances) {
+        const endAccess = isEntranceAccessible(endEntrance, dateTime);
+        if (!endAccess.accessible) continue;
+
+        const route = findShortestPath(entrance.id, endEntrance.id, dateTime);
+
+        if (route) {
+          const totalTime = walkingTimeToEntrance + route.totalTime;
+
+          if (totalTime < minTotalTime) {
+            minTotalTime = totalTime;
+            bestRoute = route;
+            bestStartBuilding = building;
+            bestStartEntrance = entrance;
+            bestWalkingDistance = distanceMeters;
+          }
+        }
+      }
+    }
+  }
+
+  if (!bestRoute) {
+    return {
+      error: 'No accessible route found',
+      reason: 'No accessible entrances nearby or all routes are closed'
+    };
+  }
+
+  // Add the initial walk to the route steps
+  const walkingTimeToEntrance = Math.ceil(bestWalkingDistance / 84);
+
+  const enhancedSteps = [
+    {
+      type: 'start',
+      location: 'Your Location',
+      entrance: null,
+      description: `Start at your current location`,
+      coordinates: { lat: userLat, lng: userLng }
+    },
+    {
+      type: 'walk',
+      location: bestStartBuilding.name,
+      entrance: bestStartEntrance.name,
+      description: `Walk ${Math.round(bestWalkingDistance)}m to ${bestStartBuilding.name} (${bestStartEntrance.name})`,
+      walkingTime: walkingTimeToEntrance,
+      coordinates: bestStartEntrance.coordinates
+    },
+    ...bestRoute.steps.slice(1) // Skip the original start step, keep waypoints and end
+  ];
+
+  return {
+    from: 'Your Location',
+    to: endBuilding.name,
+    route: {
+      ...bestRoute,
+      steps: enhancedSteps,
+      path: [bestStartEntrance.id, ...bestRoute.path]
+    },
+    estimatedMinutes: minTotalTime,
+    startingPoint: {
+      building: bestStartBuilding.name,
+      entrance: bestStartEntrance.name,
+      walkingDistance: Math.round(bestWalkingDistance),
+      coordinates: bestStartEntrance.coordinates
+    }
+  };
+}
+
 module.exports = {
   findRoute,
+  findRouteFromLocation,
   isEntranceAccessible,
   getBuildingEntrances,
   findEntranceById,

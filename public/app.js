@@ -124,7 +124,7 @@ function addBuildingMarkers() {
 }
 
 // Draw route on map
-function drawRouteOnMap(routeData, startCoords) {
+function drawRouteOnMap(routeData, fromCoords) {
     // Clear existing route
     if (map.getLayer('route')) map.removeLayer('route');
     if (map.getSource('route')) map.removeSource('route');
@@ -136,21 +136,34 @@ function drawRouteOnMap(routeData, startCoords) {
     // Build coordinates array
     const coordinates = [];
 
-    // Add starting point (current location or building)
-    if (startCoords) {
-        coordinates.push([startCoords.lng, startCoords.lat]);
-    }
+    // Check if route has coordinates in steps (from GPS routing)
+    const hasStepCoordinates = routeData.route.steps.some(step => step.coordinates);
 
-    // Add route path coordinates
-    routeData.route.path.forEach(entranceId => {
-        for (let building of buildings) {
-            const entrance = building.entrances.find(e => e.id === entranceId);
-            if (entrance) {
-                coordinates.push([entrance.coordinates.lng, entrance.coordinates.lat]);
-                return;
+    if (hasStepCoordinates) {
+        // Use coordinates from steps for GPS-based routing
+        routeData.route.steps.forEach(step => {
+            if (step.coordinates) {
+                coordinates.push([step.coordinates.lng, step.coordinates.lat]);
             }
+        });
+    } else {
+        // Legacy building-to-building routing
+        // Add starting point if provided
+        if (fromCoords) {
+            coordinates.push([fromCoords.lng, fromCoords.lat]);
         }
-    });
+
+        // Add route path coordinates
+        routeData.route.path.forEach(entranceId => {
+            for (let building of buildings) {
+                const entrance = building.entrances.find(e => e.id === entranceId);
+                if (entrance) {
+                    coordinates.push([entrance.coordinates.lng, entrance.coordinates.lat]);
+                    return;
+                }
+            }
+        });
+    }
 
     if (coordinates.length < 2) return;
 
@@ -332,7 +345,7 @@ async function findRoute() {
     const dateTime = routeTimeInput.value;
 
     let from = fromBuildingSelect.value;
-    let startCoords = null;
+    let fromCoords = null;
 
     // Validation
     if (fromType === 'current') {
@@ -340,8 +353,7 @@ async function findRoute() {
             showError('Location not available. Please enable location services.');
             return;
         }
-        from = findNearestBuilding();
-        startCoords = userLocation;
+        fromCoords = userLocation;
     } else if (!from) {
         showError('Please select a starting building.');
         return;
@@ -363,10 +375,19 @@ async function findRoute() {
     }
 
     try {
+        const requestBody = { to, dateTime };
+
+        // Add either fromCoords or from building ID
+        if (fromCoords) {
+            requestBody.fromCoords = fromCoords;
+        } else {
+            requestBody.from = from;
+        }
+
         const response = await fetch(`${API_BASE}/route`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from, to, dateTime })
+            body: JSON.stringify(requestBody)
         });
 
         const data = await response.json();
@@ -377,7 +398,7 @@ async function findRoute() {
         }
 
         displayRoute(data, fromType === 'current' ? 'Your Location' : null);
-        drawRouteOnMap(data, startCoords);
+        drawRouteOnMap(data, fromCoords);
 
     } catch (error) {
         showError('Failed to calculate route. Please try again.');

@@ -3,6 +3,7 @@ const router = express.Router();
 const { buildings } = require('../data/campusData');
 const {
   findRoute,
+  findRouteFromLocation,
   isEntranceAccessible,
   getBuildingEntrances,
   findEntranceById
@@ -36,18 +37,29 @@ router.get('/building/:id', (req, res) => {
   res.json({ building });
 });
 
-// POST /api/route - Calculate route between two buildings
+// POST /api/route - Calculate route between two buildings or from GPS location
 router.post('/route', (req, res) => {
-  const { from, to, dateTime } = req.body;
+  const { from, to, dateTime, fromCoords } = req.body;
 
-  if (!from || !to) {
-    return res.status(400).json({ error: 'Missing from or to parameter' });
+  if (!to) {
+    return res.status(400).json({ error: 'Missing to parameter' });
   }
 
   // Parse date/time or use current time
   const routeTime = dateTime ? new Date(dateTime) : new Date();
 
-  const result = findRoute(from, to, routeTime);
+  let result;
+
+  // If fromCoords is provided, route from GPS location
+  if (fromCoords && fromCoords.lat && fromCoords.lng) {
+    result = findRouteFromLocation(fromCoords.lat, fromCoords.lng, to, routeTime);
+  } else {
+    // Otherwise, route between two buildings
+    if (!from) {
+      return res.status(400).json({ error: 'Missing from parameter or fromCoords' });
+    }
+    result = findRoute(from, to, routeTime);
+  }
 
   if (result.error) {
     return res.status(400).json(result);
