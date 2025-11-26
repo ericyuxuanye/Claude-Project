@@ -7,7 +7,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
-    background: linear-gradient(135deg, #4b2e83 0%, #85754d 100%); /* UW Purple and Gold */
+    background: linear-gradient(135deg, #4b2e83 0%, #85754d 100%);
     color: #333;
     line-height: 1.6;
     min-height: 100vh;
@@ -16,56 +16,90 @@ body {
 
 /* Container */
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
 }
 
 /* Header */
 header {
-    background: #4b2e83; /* UW Purple */
+    background: linear-gradient(135deg, #4b2e83 0%, #3a2365 100%);
     color: white;
-    padding: 30px;
-    text-align: center;
+    padding: 20px 30px;
 }
 
-header h1 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.husky-logo {
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    animation: fadeIn 0.6s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.title-group h1 {
+    font-size: 2.2em;
+    margin-bottom: 5px;
+    font-weight: 700;
 }
 
 .subtitle {
-    font-size: 1.1em;
+    font-size: 1em;
     opacity: 0.9;
+    font-weight: 300;
 }
 
 /* Main Content */
 main {
     padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 h2 {
     color: #4b2e83;
     margin-bottom: 20px;
-    font-size: 1.8em;
+    font-size: 1.6em;
+    font-weight: 600;
 }
 
 h3 {
     color: #4b2e83;
     margin-bottom: 15px;
-    font-size: 1.4em;
+    font-size: 1.3em;
 }
 
 /* Route Planner */
 .route-planner {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     padding: 25px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin-bottom: 30px;
-    border: 2px solid #e9ecef;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .form-group {
@@ -77,23 +111,25 @@ label {
     margin-bottom: 8px;
     font-weight: 600;
     color: #4b2e83;
+    font-size: 0.95em;
 }
 
 .building-select,
 .time-input {
     width: 100%;
-    padding: 12px;
+    padding: 12px 16px;
     font-size: 1em;
     border: 2px solid #dee2e6;
-    border-radius: 6px;
+    border-radius: 8px;
     background: white;
-    transition: border-color 0.3s;
+    transition: all 0.3s;
 }
 
 .building-select:focus,
 .time-input:focus {
     outline: none;
     border-color: #4b2e83;
+    box-shadow: 0 0 0 3px rgba(75, 46, 131, 0.1);
 }
 
 /* Buttons */
@@ -102,54 +138,73 @@ label {
     padding: 12px 24px;
     font-size: 1em;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s;
     font-weight: 600;
 }
 
 .btn-primary {
-    background: #4b2e83;
+    background: linear-gradient(135deg, #4b2e83 0%, #3a2365 100%);
     color: white;
     width: 100%;
     margin-top: 10px;
 }
 
 .btn-primary:hover {
-    background: #3a2365;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(75, 46, 131, 0.3);
+    box-shadow: 0 6px 20px rgba(75, 46, 131, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
 }
 
 .btn-secondary {
-    background: #85754d; /* UW Gold */
+    background: linear-gradient(135deg, #85754d 0%, #6e6140 100%);
     color: white;
     margin-top: 10px;
 }
 
 .btn-secondary:hover {
-    background: #6e6140;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(133, 117, 77, 0.4);
+}
+
+/* Map Container */
+.map-container {
+    margin-bottom: 30px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+#map {
+    width: 100%;
+    height: 500px;
 }
 
 /* Route Result */
 .route-result {
-    background: #e8f5e9;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
     padding: 25px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin-bottom: 30px;
     border-left: 4px solid #4caf50;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .route-summary {
     background: white;
     padding: 20px;
-    border-radius: 6px;
+    border-radius: 8px;
     margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .route-summary p {
     margin: 10px 0;
-    font-size: 1.1em;
+    font-size: 1.05em;
 }
 
 .route-summary strong {
@@ -157,17 +212,22 @@ label {
 }
 
 .estimated-time {
-    font-size: 1.3em;
-    color: #4caf50;
+    font-size: 1.4em;
+    color: #2e7d32;
     font-weight: bold;
-    margin-top: 10px;
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 6px;
+    display: inline-block;
 }
 
 /* Route Steps */
 .route-steps {
     background: white;
     padding: 20px;
-    border-radius: 6px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .step {
@@ -175,7 +235,12 @@ label {
     margin-bottom: 10px;
     border-left: 3px solid #4b2e83;
     background: #f8f9fa;
-    border-radius: 4px;
+    border-radius: 6px;
+    transition: transform 0.2s;
+}
+
+.step:hover {
+    transform: translateX(5px);
 }
 
 .step:last-child {
@@ -186,29 +251,39 @@ label {
     display: inline-block;
     background: #4b2e83;
     color: white;
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
     text-align: center;
     border-radius: 50%;
-    margin-right: 10px;
+    margin-right: 12px;
     font-weight: bold;
 }
 
 .step-start {
     border-left-color: #4caf50;
+    background: linear-gradient(90deg, #e8f5e9 0%, #f8f9fa 100%);
+}
+
+.step-start .step-number {
+    background: #4caf50;
 }
 
 .step-end {
     border-left-color: #f44336;
+    background: linear-gradient(90deg, #ffebee 0%, #f8f9fa 100%);
+}
+
+.step-end .step-number {
+    background: #f44336;
 }
 
 /* Warnings */
 .route-warnings {
-    background: #fff3cd;
+    background: #fff8e1;
     border: 2px solid #ffc107;
     padding: 15px;
-    border-radius: 6px;
+    border-radius: 8px;
     margin-top: 15px;
 }
 
@@ -218,20 +293,22 @@ label {
 }
 
 .warning-item {
-    padding: 8px;
+    padding: 8px 12px;
     margin: 5px 0;
     background: white;
-    border-radius: 4px;
+    border-radius: 6px;
+    border-left: 3px solid #ffc107;
 }
 
 /* Error Message */
 .error-message {
-    background: #f8d7da;
-    border: 2px solid #f5c6cb;
-    color: #721c24;
+    background: #ffebee;
+    border: 2px solid #f44336;
+    color: #c62828;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
 }
 
 /* Building Access Section */
@@ -247,27 +324,28 @@ label {
 
 .building-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
 }
 
 .building-card {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     padding: 20px;
-    border-radius: 8px;
-    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
     cursor: pointer;
     transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .building-card:hover {
     border-color: #4b2e83;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(75, 46, 131, 0.15);
 }
 
 .building-card h3 {
-    font-size: 1.2em;
+    font-size: 1.15em;
     margin-bottom: 10px;
 }
 
@@ -278,24 +356,27 @@ label {
 
 /* Access Details */
 .access-details {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     padding: 25px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin-top: 20px;
     border: 2px solid #4b2e83;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .entrance-item {
     background: white;
-    padding: 15px;
+    padding: 18px;
     margin-bottom: 15px;
-    border-radius: 6px;
+    border-radius: 8px;
     border-left: 4px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .entrance-item h4 {
     color: #4b2e83;
     margin-bottom: 10px;
+    font-size: 1.1em;
 }
 
 .entrance-accessible {
@@ -308,10 +389,11 @@ label {
 
 .access-status {
     display: inline-block;
-    padding: 5px 12px;
-    border-radius: 4px;
+    padding: 6px 14px;
+    border-radius: 20px;
     font-weight: bold;
     margin: 5px 0;
+    font-size: 0.85em;
 }
 
 .status-open {
@@ -325,12 +407,12 @@ label {
 }
 
 .access-schedule {
-    margin-top: 10px;
+    margin-top: 12px;
     font-size: 0.95em;
 }
 
 .schedule-day {
-    padding: 5px 0;
+    padding: 6px 0;
     border-bottom: 1px solid #e9ecef;
 }
 
@@ -347,25 +429,26 @@ label {
 
 .card-required {
     display: inline-block;
-    background: #fff3cd;
+    background: #fff8e1;
     color: #856404;
-    padding: 3px 8px;
-    border-radius: 3px;
+    padding: 4px 10px;
+    border-radius: 12px;
     font-size: 0.85em;
     margin-left: 10px;
+    border: 1px solid #ffc107;
 }
 
 /* Footer */
 footer {
-    background: #f8f9fa;
-    padding: 20px 30px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 25px 30px;
     border-top: 2px solid #dee2e6;
     text-align: center;
 }
 
 .current-time {
-    margin-bottom: 10px;
-    font-size: 1.1em;
+    margin-bottom: 12px;
+    font-size: 1.05em;
 }
 
 .current-time strong {
@@ -388,15 +471,60 @@ footer {
         padding: 10px;
     }
 
-    header h1 {
-        font-size: 1.8em;
+    .container {
+        border-radius: 12px;
+    }
+
+    header {
+        padding: 15px 20px;
+    }
+
+    .logo-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .husky-logo {
+        width: 60px;
+        height: 60px;
+    }
+
+    .title-group h1 {
+        font-size: 1.6em;
+    }
+
+    .subtitle {
+        font-size: 0.9em;
     }
 
     main {
         padding: 20px;
     }
 
+    h2 {
+        font-size: 1.4em;
+    }
+
+    #map {
+        height: 350px;
+    }
+
     .building-list {
         grid-template-columns: 1fr;
     }
+
+    .route-planner {
+        padding: 20px;
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading animation for map */
+.mapboxgl-canvas {
+    animation: fadeIn 0.5s ease-in;
 }

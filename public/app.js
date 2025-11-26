@@ -1,9 +1,15 @@
 // API Base URL
 const API_BASE = '/api';
 
+// Mapbox configuration
+mapboxgl.accessToken = 'pk.eyJ1IjoiZXJpY3k0IiwiYSI6ImNtaG14ODczaTFwYXkycnB0azI5eGF0bjgifQ.Gwv4jC4Je1pJnHKsirVb_g';
+
 // State
 let buildings = [];
 let selectedBuilding = null;
+let map = null;
+let routeLayer = null;
+let markers = [];
 
 // DOM Elements
 const fromBuildingSelect = document.getElementById('from-building');
@@ -23,10 +29,155 @@ const currentTimeDisplay = document.getElementById('current-time-display');
 // Initialize app
 async function init() {
     await loadBuildings();
+    initializeMap();
     setCurrentTime();
     updateCurrentTimeDisplay();
     setInterval(updateCurrentTimeDisplay, 1000);
     setupEventListeners();
+}
+
+// Initialize Mapbox map
+function initializeMap() {
+    map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [-122.3078, 47.6553], // UW campus center
+        zoom: 15.5
+    });
+
+    // Add navigation controls
+    map.addControl(new mapboxgl.NavigationControl());
+
+    map.on('load', () => {
+        addBuildingMarkers();
+    });
+}
+
+// Add building markers to map
+function addBuildingMarkers() {
+    buildings.forEach(building => {
+        // Create custom marker element
+        const el = document.createElement('div');
+        el.className = 'custom-marker';
+        el.style.width = '30px';
+        el.style.height = '30px';
+        el.style.borderRadius = '50%';
+        el.style.backgroundColor = '#4b2e83';
+        el.style.border = '3px solid white';
+        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+        el.style.cursor = 'pointer';
+
+        // Create popup
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+            `<div style="padding: 8px;">
+                <strong style="color: #4b2e83;">${building.name}</strong><br>
+                <small>${building.entrances.length} entrance(s)</small>
+            </div>`
+        );
+
+        // Add marker
+        const marker = new mapboxgl.Marker(el)
+            .setLngLat([building.coordinates.lng, building.coordinates.lat])
+            .setPopup(popup)
+            .addTo(map);
+
+        markers.push(marker);
+
+        // Click handler
+        el.addEventListener('click', () => {
+            showBuildingAccess(building.id);
+        });
+    });
+}
+
+// Draw route on map
+function drawRouteOnMap(routeData) {
+    // Clear existing route
+    if (map.getLayer('route')) {
+        map.removeLayer('route');
+    }
+    if (map.getSource('route')) {
+        map.removeSource('route');
+    }
+
+    // Get coordinates for each entrance in the path
+    const coordinates = routeData.route.path.map(entranceId => {
+        for (let building of buildings) {
+            const entrance = building.entrances.find(e => e.id === entranceId);
+            if (entrance) {
+                return [entrance.coordinates.lng, entrance.coordinates.lat];
+            }
+        }
+        return null;
+    }).filter(coord => coord !== null);
+
+    if (coordinates.length < 2) return;
+
+    // Add route source
+    map.addSource('route', {
+        type: 'geojson',
+        data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'LineString',
+                coordinates: coordinates
+            }
+        }
+    });
+
+    // Add route layer
+    map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#4caf50',
+            'line-width': 5,
+            'line-opacity': 0.8
+        }
+    });
+
+    // Add start and end markers
+    const startCoord = coordinates[0];
+    const endCoord = coordinates[coordinates.length - 1];
+
+    // Start marker (green)
+    const startEl = document.createElement('div');
+    startEl.style.width = '40px';
+    startEl.style.height = '40px';
+    startEl.style.borderRadius = '50%';
+    startEl.style.backgroundColor = '#4caf50';
+    startEl.style.border = '4px solid white';
+    startEl.style.boxShadow = '0 3px 12px rgba(0,0,0,0.4)';
+    startEl.innerHTML = '<div style="color: white; font-weight: bold; text-align: center; line-height: 32px; font-size: 18px;">S</div>';
+
+    new mapboxgl.Marker(startEl)
+        .setLngLat(startCoord)
+        .addTo(map);
+
+    // End marker (red)
+    const endEl = document.createElement('div');
+    endEl.style.width = '40px';
+    endEl.style.height = '40px';
+    endEl.style.borderRadius = '50%';
+    endEl.style.backgroundColor = '#f44336';
+    endEl.style.border = '4px solid white';
+    endEl.style.boxShadow = '0 3px 12px rgba(0,0,0,0.4)';
+    endEl.innerHTML = '<div style="color: white; font-weight: bold; text-align: center; line-height: 32px; font-size: 18px;">E</div>';
+
+    new mapboxgl.Marker(endEl)
+        .setLngLat(endCoord)
+        .addTo(map);
+
+    // Fit map to show entire route
+    const bounds = new mapboxgl.LngLatBounds();
+    coordinates.forEach(coord => bounds.extend(coord));
+    map.fitBounds(bounds, { padding: 80, duration: 1000 });
 }
 
 // Load buildings from API
@@ -119,6 +270,15 @@ async function showBuildingAccess(buildingId) {
         document.getElementById('entrance-access-list').innerHTML = entrancesList;
         accessDetails.classList.remove('hidden');
 
+        // Fly to building on map
+        if (map && building.coordinates) {
+            map.flyTo({
+                center: [building.coordinates.lng, building.coordinates.lat],
+                zoom: 17,
+                duration: 1500
+            });
+        }
+
     } catch (error) {
         showError('Failed to load access information.');
         console.error('Error loading access info:', error);
@@ -196,6 +356,7 @@ async function findRoute() {
         }
 
         displayRoute(data);
+        drawRouteOnMap(data);
 
     } catch (error) {
         showError('Failed to calculate route. Please try again.');
