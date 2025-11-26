@@ -4,12 +4,12 @@ const buildings = {
   'suzzallo': {
     id: 'suzzallo',
     name: 'Suzzallo Library',
-    coordinates: { lat: 47.6564, lng: -122.3085 },
+    coordinates: { lat: 47.65584447835264, lng: -122.30870759622584 },
     entrances: [
       {
         id: 'suzzallo-main',
         name: 'Main Entrance',
-        coordinates: { lat: 47.6564, lng: -122.3085 },
+        coordinates: { lat: 47.65584447835264, lng: -122.30870759622584 },
         accessSchedule: {
           monday: { open: '07:30', close: '23:00' },
           tuesday: { open: '07:30', close: '23:00' },
@@ -24,7 +24,7 @@ const buildings = {
       {
         id: 'suzzallo-side',
         name: 'East Entrance',
-        coordinates: { lat: 47.6564, lng: -122.3082 },
+        coordinates: { lat: 47.65566661884187, lng: -122.30716510601894 },
         accessSchedule: {
           monday: { open: '07:30', close: '18:00' },
           tuesday: { open: '07:30', close: '18:00' },
@@ -41,12 +41,12 @@ const buildings = {
   'ode': {
     id: 'ode',
     name: 'Odegaard Library',
-    coordinates: { lat: 47.6564, lng: -122.3098 },
+    coordinates: { lat: 47.65640633836168, lng: -122.31004678595927 },
     entrances: [
       {
         id: 'ode-main',
         name: 'Main Entrance',
-        coordinates: { lat: 47.6564, lng: -122.3098 },
+        coordinates: { lat: 47.65640633836168, lng: -122.31004678595927 },
         accessSchedule: {
           monday: { open: '00:00', close: '23:59' },
           tuesday: { open: '00:00', close: '23:59' },
@@ -63,12 +63,12 @@ const buildings = {
   'cse': {
     id: 'cse',
     name: 'Paul G. Allen Center (CSE)',
-    coordinates: { lat: 47.6534, lng: -122.3051 },
+    coordinates: { lat: 47.65356455436204, lng: -122.30559860767016 },
     entrances: [
       {
         id: 'cse-main',
         name: 'Main Entrance',
-        coordinates: { lat: 47.6534, lng: -122.3051 },
+        coordinates: { lat: 47.65356455436204, lng: -122.30559860767016 },
         accessSchedule: {
           monday: { open: '06:00', close: '22:00' },
           tuesday: { open: '06:00', close: '22:00' },
@@ -83,7 +83,7 @@ const buildings = {
       {
         id: 'cse-gates',
         name: 'Gates Wing Entrance',
-        coordinates: { lat: 47.6536, lng: -122.3048 },
+        coordinates: { lat: 47.653092140912875, lng: -122.30514806847312 },
         accessSchedule: {
           monday: { open: '07:00', close: '20:00' },
           tuesday: { open: '07:00', close: '20:00' },
@@ -100,12 +100,12 @@ const buildings = {
   'hub': {
     id: 'hub',
     name: 'Husky Union Building (HUB)',
-    coordinates: { lat: 47.6553, lng: -122.3050 },
+    coordinates: { lat: 47.65543412447449, lng: -122.30551785064522 },
     entrances: [
       {
         id: 'hub-main',
         name: 'Main Entrance',
-        coordinates: { lat: 47.6553, lng: -122.3050 },
+        coordinates: { lat: 47.65543412447449, lng: -122.30551785064522 },
         accessSchedule: {
           monday: { open: '07:00', close: '23:00' },
           tuesday: { open: '07:00', close: '23:00' },
@@ -122,12 +122,12 @@ const buildings = {
   'kane': {
     id: 'kane',
     name: 'Kane Hall',
-    coordinates: { lat: 47.6575, lng: -122.3094 },
+    coordinates: { lat: 47.65640305483598, lng: -122.30936434738139 },
     entrances: [
       {
         id: 'kane-main',
         name: 'Main Entrance',
-        coordinates: { lat: 47.6575, lng: -122.3094 },
+        coordinates: { lat: 47.65640305483598, lng: -122.30936434738139 },
         accessSchedule: {
           monday: { open: '06:00', close: '22:00' },
           tuesday: { open: '06:00', close: '22:00' },
@@ -142,7 +142,7 @@ const buildings = {
       {
         id: 'kane-north',
         name: 'North Entrance',
-        coordinates: { lat: 47.6577, lng: -122.3094 },
+        coordinates: { lat: 47.656662887084074, lng: -122.30874547917324 },
         accessSchedule: {
           monday: { open: '07:00', close: '18:00' },
           tuesday: { open: '07:00', close: '18:00' },
@@ -156,37 +156,15 @@ const buildings = {
       }
     ]
   },
-  'iec': {
-    id: 'iec',
-    name: 'Intellectual Exchange Center (IEC)',
-    coordinates: { lat: 47.6549, lng: -122.3078 },
-    entrances: [
-      {
-        id: 'iec-main',
-        name: 'Main Entrance',
-        coordinates: { lat: 47.6549, lng: -122.3078 },
-        accessSchedule: {
-          monday: { open: '07:00', close: '22:00' },
-          tuesday: { open: '07:00', close: '22:00' },
-          wednesday: { open: '07:00', close: '22:00' },
-          thursday: { open: '07:00', close: '22:00' },
-          friday: { open: '07:00', close: '22:00' },
-          saturday: { open: '09:00', close: '20:00' },
-          sunday: { open: '10:00', close: '20:00' }
-        },
-        requiresCard: false
-      }
-    ]
-  },
   'mgh': {
     id: 'mgh',
     name: 'Mary Gates Hall',
-    coordinates: { lat: 47.6556, lng: -122.3089 },
+    coordinates: { lat: 47.65512818639898, lng: -122.30801192558745 },
     entrances: [
       {
         id: 'mgh-main',
         name: 'Main Entrance',
-        coordinates: { lat: 47.6556, lng: -122.3089 },
+        coordinates: { lat: 47.65512818639898, lng: -122.30801192558745 },
         accessSchedule: {
           monday: { open: '06:00', close: '22:00' },
           tuesday: { open: '06:00', close: '22:00' },
@@ -217,28 +195,24 @@ const pathways = [
   // Mary Gates and Odegaard are very close (north of Red Square)
   { from: 'mgh-main', to: 'ode-main', distance: 60, time: 1 },
   { from: 'mgh-main', to: 'suzzallo-main', distance: 110, time: 2 },
+  { from: 'mgh-main', to: 'hub-main', distance: 100, time: 2 },
 
   // Odegaard to Red Square buildings
   { from: 'ode-main', to: 'kane-main', distance: 120, time: 2 },
   { from: 'ode-main', to: 'suzzallo-main', distance: 100, time: 2 },
 
-  // IEC is central, connects multiple buildings
-  { from: 'iec-main', to: 'mgh-main', distance: 80, time: 2 },
-  { from: 'iec-main', to: 'kane-main', distance: 130, time: 3 },
-  { from: 'iec-main', to: 'hub-main', distance: 90, time: 2 },
-
   // HUB connections (south of central campus)
-  { from: 'hub-main', to: 'mgh-main', distance: 140, time: 3 },
   { from: 'hub-main', to: 'kane-main', distance: 180, time: 4 },
+  { from: 'hub-main', to: 'suzzallo-main', distance: 140, time: 3 },
 
-  // CSE is northeast, connects to HUB and IEC
+  // CSE is northeast, connects to HUB and Mary Gates
   { from: 'cse-main', to: 'cse-gates', distance: 40, time: 1 },
   { from: 'cse-main', to: 'hub-main', distance: 160, time: 4 },
   { from: 'cse-gates', to: 'hub-main', distance: 150, time: 3 },
-  { from: 'cse-main', to: 'iec-main', distance: 200, time: 4 },
+  { from: 'cse-main', to: 'mgh-main', distance: 180, time: 4 },
 
   // Additional connections for better routing
-  { from: 'ode-main', to: 'iec-main', distance: 140, time: 3 }
+  { from: 'ode-main', to: 'hub-main', distance: 200, time: 4 }
 ];
 
 module.exports = {
