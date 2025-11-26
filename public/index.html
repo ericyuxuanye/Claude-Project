@@ -9,85 +9,95 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <div class="logo-section">
-                    <svg class="husky-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="50" cy="50" r="45" fill="#4b2e83"/>
-                        <path d="M 30 45 Q 35 35 50 40 Q 65 35 70 45 L 70 60 Q 65 70 50 65 Q 35 70 30 60 Z" fill="#85754d"/>
-                        <circle cx="40" cy="45" r="5" fill="white"/>
-                        <circle cx="60" cy="45" r="5" fill="white"/>
-                        <circle cx="40" cy="45" r="2" fill="black"/>
-                        <circle cx="60" cy="45" r="2" fill="black"/>
-                        <path d="M 45 55 Q 50 58 55 55" stroke="white" stroke-width="2" fill="none"/>
-                    </svg>
-                    <div class="title-group">
-                        <h1>UW Campus Navigation</h1>
-                        <p class="subtitle">Smart routing with time-based building access</p>
-                    </div>
-                </div>
-            </div>
-        </header>
+    <!-- Full-screen map -->
+    <div id="map"></div>
 
-        <main>
-            <div class="route-planner">
-                <h2>Plan Your Route</h2>
+    <!-- Floating header -->
+    <div class="floating-header">
+        <svg class="husky-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="#4b2e83"/>
+            <path d="M 30 45 Q 35 35 50 40 Q 65 35 70 45 L 70 60 Q 65 70 50 65 Q 35 70 30 60 Z" fill="#85754d"/>
+            <circle cx="40" cy="45" r="5" fill="white"/>
+            <circle cx="60" cy="45" r="5" fill="white"/>
+            <circle cx="40" cy="45" r="2" fill="black"/>
+            <circle cx="60" cy="45" r="2" fill="black"/>
+            <path d="M 45 55 Q 50 58 55 55" stroke="white" stroke-width="2" fill="none"/>
+        </svg>
+        <div class="header-text">
+            <h1>UW Campus Navigation</h1>
+            <p>Smart routing with time-based access</p>
+        </div>
+    </div>
 
-                <div class="form-group">
-                    <label for="from-building">From:</label>
+    <!-- Floating route planner -->
+    <div class="floating-panel route-panel">
+        <div class="panel-header">
+            <h2>Plan Your Route</h2>
+            <button id="toggle-panel" class="toggle-btn">−</button>
+        </div>
+        <div class="panel-content">
+            <div class="form-group">
+                <label for="from-type">From:</label>
+                <div class="input-group">
+                    <select id="from-type" class="location-type-select">
+                        <option value="building">Building</option>
+                        <option value="current">My Location</option>
+                    </select>
                     <select id="from-building" class="building-select">
-                        <option value="">Select starting building...</option>
+                        <option value="">Select building...</option>
                     </select>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label for="to-building">To:</label>
-                    <select id="to-building" class="building-select">
-                        <option value="">Select destination...</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label for="to-building">To:</label>
+                <select id="to-building" class="building-select">
+                    <option value="">Select destination...</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label for="route-time">Time:</label>
+            <div class="form-group">
+                <label for="route-time">Time:</label>
+                <div class="time-controls">
                     <input type="datetime-local" id="route-time" class="time-input">
-                    <button id="use-current-time" class="btn-secondary">Use Current Time</button>
+                    <button id="use-current-time" class="btn-icon" title="Use current time">🕐</button>
                 </div>
-
-                <button id="find-route" class="btn-primary">Find Route</button>
             </div>
 
-            <div id="map-container" class="map-container">
-                <div id="map"></div>
-            </div>
+            <button id="find-route" class="btn-primary">Find Route</button>
+        </div>
+    </div>
 
-            <div id="route-result" class="route-result hidden">
-                <h2>Your Route</h2>
-                <div id="route-summary" class="route-summary"></div>
-                <div id="route-steps" class="route-steps"></div>
-                <div id="route-warnings" class="route-warnings"></div>
-            </div>
+    <!-- Floating route result -->
+    <div id="route-result" class="floating-panel result-panel hidden">
+        <div class="panel-header">
+            <h2>Your Route</h2>
+            <button id="close-result" class="toggle-btn">×</button>
+        </div>
+        <div class="panel-content">
+            <div id="route-summary" class="route-summary"></div>
+            <div id="route-steps" class="route-steps"></div>
+            <div id="route-warnings" class="route-warnings hidden"></div>
+        </div>
+    </div>
 
-            <div id="error-message" class="error-message hidden"></div>
+    <!-- Error toast -->
+    <div id="error-toast" class="error-toast hidden"></div>
 
-            <div class="building-access">
-                <h2>Building Access Information</h2>
-                <p class="info-text">Click on a building to see entrance access schedules</p>
-                <div id="building-list" class="building-list"></div>
-            </div>
+    <!-- Building info panel -->
+    <div id="building-info" class="floating-panel info-panel hidden">
+        <div class="panel-header">
+            <h3 id="building-name"></h3>
+            <button id="close-info" class="toggle-btn">×</button>
+        </div>
+        <div class="panel-content">
+            <div id="entrance-list"></div>
+        </div>
+    </div>
 
-            <div id="access-details" class="access-details hidden">
-                <h3 id="access-building-name"></h3>
-                <div id="entrance-access-list"></div>
-            </div>
-        </main>
-
-        <footer>
-            <div class="current-time">
-                <strong>Current Time:</strong> <span id="current-time-display"></span>
-            </div>
-            <p class="footer-note">Access times are subject to change. Always check building hours before your visit.</p>
-        </footer>
+    <!-- Current time display -->
+    <div class="floating-time">
+        <span id="current-time-display"></span>
     </div>
 
     <script src="app.js"></script>

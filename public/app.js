@@ -6,12 +6,13 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiZXJpY3k0IiwiYSI6ImNtaG14ODczaTFwYXkycnB0azI5e
 
 // State
 let buildings = [];
-let selectedBuilding = null;
 let map = null;
-let routeLayer = null;
 let markers = [];
+let currentLocationMarker = null;
+let userLocation = null;
 
 // DOM Elements
+const fromTypeSelect = document.getElementById('from-type');
 const fromBuildingSelect = document.getElementById('from-building');
 const toBuildingSelect = document.getElementById('to-building');
 const routeTimeInput = document.getElementById('route-time');
@@ -21,10 +22,12 @@ const routeResult = document.getElementById('route-result');
 const routeSummary = document.getElementById('route-summary');
 const routeSteps = document.getElementById('route-steps');
 const routeWarnings = document.getElementById('route-warnings');
-const errorMessage = document.getElementById('error-message');
-const buildingList = document.getElementById('building-list');
-const accessDetails = document.getElementById('access-details');
+const errorToast = document.getElementById('error-toast');
+const buildingInfo = document.getElementById('building-info');
 const currentTimeDisplay = document.getElementById('current-time-display');
+const togglePanelBtn = document.getElementById('toggle-panel');
+const closeResultBtn = document.getElementById('close-result');
+const closeInfoBtn = document.getElementById('close-info');
 
 // Initialize app
 async function init() {
@@ -34,48 +37,79 @@ async function init() {
     updateCurrentTimeDisplay();
     setInterval(updateCurrentTimeDisplay, 1000);
     setupEventListeners();
+    requestUserLocation();
 }
 
-// Initialize Mapbox map
+// Initialize Mapbox map with dark theme
 function initializeMap() {
     map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [-122.3078, 47.6553], // UW campus center
-        zoom: 15.5
+        style: 'mapbox://styles/mapbox/dark-v11', // Dark theme
+        center: [-122.3078, 47.6553],
+        zoom: 15.5,
+        pitch: 45 // 3D tilt
     });
 
     // Add navigation controls
-    map.addControl(new mapboxgl.NavigationControl());
+    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
     map.on('load', () => {
         addBuildingMarkers();
     });
 }
 
+// Request user's current location
+function requestUserLocation() {
+    if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                addCurrentLocationMarker();
+            },
+            (error) => {
+                console.log('Location access denied or unavailable');
+            }
+        );
+    }
+}
+
+// Add current location marker
+function addCurrentLocationMarker() {
+    if (!userLocation || !map) return;
+
+    const el = document.createElement('div');
+    el.className = 'marker-current-location';
+
+    currentLocationMarker = new mapboxgl.Marker(el)
+        .setLngLat([userLocation.lng, userLocation.lat])
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(
+            '<div style="padding: 8px; color: #333;"><strong>You are here</strong></div>'
+        ))
+        .addTo(map);
+}
+
 // Add building markers to map
 function addBuildingMarkers() {
     buildings.forEach(building => {
-        // Create custom marker element
         const el = document.createElement('div');
-        el.className = 'custom-marker';
         el.style.width = '30px';
         el.style.height = '30px';
         el.style.borderRadius = '50%';
         el.style.backgroundColor = '#4b2e83';
         el.style.border = '3px solid white';
-        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
         el.style.cursor = 'pointer';
 
-        // Create popup
         const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-            `<div style="padding: 8px;">
+            `<div style="padding: 8px; color: #333;">
                 <strong style="color: #4b2e83;">${building.name}</strong><br>
                 <small>${building.entrances.length} entrance(s)</small>
             </div>`
         );
 
-        // Add marker
         const marker = new mapboxgl.Marker(el)
             .setLngLat([building.coordinates.lng, building.coordinates.lat])
             .setPopup(popup)
@@ -83,37 +117,44 @@ function addBuildingMarkers() {
 
         markers.push(marker);
 
-        // Click handler
         el.addEventListener('click', () => {
-            showBuildingAccess(building.id);
+            showBuildingInfo(building.id);
         });
     });
 }
 
 // Draw route on map
-function drawRouteOnMap(routeData) {
+function drawRouteOnMap(routeData, startCoords) {
     // Clear existing route
-    if (map.getLayer('route')) {
-        map.removeLayer('route');
-    }
-    if (map.getSource('route')) {
-        map.removeSource('route');
+    if (map.getLayer('route')) map.removeLayer('route');
+    if (map.getSource('route')) map.removeSource('route');
+
+    // Remove previous start/end markers
+    const oldMarkers = document.querySelectorAll('.route-marker');
+    oldMarkers.forEach(m => m.remove());
+
+    // Build coordinates array
+    const coordinates = [];
+
+    // Add starting point (current location or building)
+    if (startCoords) {
+        coordinates.push([startCoords.lng, startCoords.lat]);
     }
 
-    // Get coordinates for each entrance in the path
-    const coordinates = routeData.route.path.map(entranceId => {
+    // Add route path coordinates
+    routeData.route.path.forEach(entranceId => {
         for (let building of buildings) {
             const entrance = building.entrances.find(e => e.id === entranceId);
             if (entrance) {
-                return [entrance.coordinates.lng, entrance.coordinates.lat];
+                coordinates.push([entrance.coordinates.lng, entrance.coordinates.lat]);
+                return;
             }
         }
-        return null;
-    }).filter(coord => coord !== null);
+    });
 
     if (coordinates.length < 2) return;
 
-    // Add route source
+    // Add route line
     map.addSource('route', {
         type: 'geojson',
         data: {
@@ -126,7 +167,6 @@ function drawRouteOnMap(routeData) {
         }
     });
 
-    // Add route layer
     map.addLayer({
         id: 'route',
         type: 'line',
@@ -137,47 +177,41 @@ function drawRouteOnMap(routeData) {
         },
         paint: {
             'line-color': '#4caf50',
-            'line-width': 5,
-            'line-opacity': 0.8
+            'line-width': 6,
+            'line-opacity': 0.9
         }
     });
 
-    // Add start and end markers
-    const startCoord = coordinates[0];
-    const endCoord = coordinates[coordinates.length - 1];
-
-    // Start marker (green)
+    // Start marker
     const startEl = document.createElement('div');
+    startEl.className = 'route-marker';
     startEl.style.width = '40px';
     startEl.style.height = '40px';
     startEl.style.borderRadius = '50%';
     startEl.style.backgroundColor = '#4caf50';
     startEl.style.border = '4px solid white';
-    startEl.style.boxShadow = '0 3px 12px rgba(0,0,0,0.4)';
+    startEl.style.boxShadow = '0 3px 12px rgba(0,0,0,0.6)';
     startEl.innerHTML = '<div style="color: white; font-weight: bold; text-align: center; line-height: 32px; font-size: 18px;">S</div>';
 
-    new mapboxgl.Marker(startEl)
-        .setLngLat(startCoord)
-        .addTo(map);
+    new mapboxgl.Marker(startEl).setLngLat(coordinates[0]).addTo(map);
 
-    // End marker (red)
+    // End marker
     const endEl = document.createElement('div');
+    endEl.className = 'route-marker';
     endEl.style.width = '40px';
     endEl.style.height = '40px';
     endEl.style.borderRadius = '50%';
     endEl.style.backgroundColor = '#f44336';
     endEl.style.border = '4px solid white';
-    endEl.style.boxShadow = '0 3px 12px rgba(0,0,0,0.4)';
+    endEl.style.boxShadow = '0 3px 12px rgba(0,0,0,0.6)';
     endEl.innerHTML = '<div style="color: white; font-weight: bold; text-align: center; line-height: 32px; font-size: 18px;">E</div>';
 
-    new mapboxgl.Marker(endEl)
-        .setLngLat(endCoord)
-        .addTo(map);
+    new mapboxgl.Marker(endEl).setLngLat(coordinates[coordinates.length - 1]).addTo(map);
 
-    // Fit map to show entire route
+    // Fit map to route
     const bounds = new mapboxgl.LngLatBounds();
     coordinates.forEach(coord => bounds.extend(coord));
-    map.fitBounds(bounds, { padding: 80, duration: 1000 });
+    map.fitBounds(bounds, { padding: 100, duration: 1500 });
 }
 
 // Load buildings from API
@@ -187,7 +221,6 @@ async function loadBuildings() {
         const data = await response.json();
         buildings = data.buildings;
         populateBuildingSelects();
-        displayBuildingList();
     } catch (error) {
         showError('Failed to load buildings. Please refresh the page.');
         console.error('Error loading buildings:', error);
@@ -200,25 +233,13 @@ function populateBuildingSelects() {
         `<option value="${building.id}">${building.name}</option>`
     ).join('');
 
-    fromBuildingSelect.innerHTML = '<option value="">Select starting building...</option>' + options;
+    fromBuildingSelect.innerHTML = '<option value="">Select building...</option>' + options;
     toBuildingSelect.innerHTML = '<option value="">Select destination...</option>' + options;
 }
 
-// Display building list
-function displayBuildingList() {
-    buildingList.innerHTML = buildings.map(building => `
-        <div class="building-card" onclick="showBuildingAccess('${building.id}')">
-            <h3>${building.name}</h3>
-            <p class="entrance-count">${building.entrances.length} entrance${building.entrances.length > 1 ? 's' : ''}</p>
-        </div>
-    `).join('');
-}
-
-// Show building access details
-async function showBuildingAccess(buildingId) {
-    selectedBuilding = buildingId;
+// Show building info panel
+async function showBuildingInfo(buildingId) {
     const building = buildings.find(b => b.id === buildingId);
-
     if (!building) return;
 
     const dateTime = routeTimeInput.value || new Date().toISOString();
@@ -227,7 +248,7 @@ async function showBuildingAccess(buildingId) {
         const response = await fetch(`${API_BASE}/access/building/${buildingId}?dateTime=${dateTime}`);
         const data = await response.json();
 
-        document.getElementById('access-building-name').textContent = building.name;
+        document.getElementById('building-name').textContent = building.name;
 
         const entrancesList = data.entrances.map(entrance => {
             const isAccessible = entrance.accessible;
@@ -236,25 +257,11 @@ async function showBuildingAccess(buildingId) {
                 '<span class="access-status status-open">OPEN</span>' :
                 '<span class="access-status status-closed">CLOSED</span>';
 
-            let scheduleHTML = '';
-            if (entrance.schedule) {
-                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                scheduleHTML = '<div class="access-schedule">' +
-                    days.map(day => {
-                        const capitalDay = day.charAt(0).toUpperCase() + day.slice(1);
-                        const schedule = entrance.schedule;
-                        return schedule ?
-                            `<div class="schedule-day"><span class="day-name">${capitalDay}:</span> ${schedule.open} - ${schedule.close}</div>` :
-                            `<div class="schedule-day"><span class="day-name">${capitalDay}:</span> Closed</div>`;
-                    }).join('') +
-                    '</div>';
-            }
-
             const cardBadge = entrance.requiresCard ?
                 '<span class="card-required">🔒 Husky Card Required</span>' : '';
 
             const reason = !isAccessible && entrance.reason ?
-                `<p style="color: #c62828; margin-top: 10px;">⚠️ ${entrance.reason}</p>` : '';
+                `<p style="color: #f44336; margin-top: 10px;">⚠️ ${entrance.reason}</p>` : '';
 
             return `
                 <div class="entrance-item ${statusClass}">
@@ -262,26 +269,22 @@ async function showBuildingAccess(buildingId) {
                     ${statusBadge}
                     ${cardBadge}
                     ${reason}
-                    ${scheduleHTML}
                 </div>
             `;
         }).join('');
 
-        document.getElementById('entrance-access-list').innerHTML = entrancesList;
-        accessDetails.classList.remove('hidden');
+        document.getElementById('entrance-list').innerHTML = entrancesList;
+        buildingInfo.classList.remove('hidden');
 
-        // Fly to building on map
-        if (map && building.coordinates) {
-            map.flyTo({
-                center: [building.coordinates.lng, building.coordinates.lat],
-                zoom: 17,
-                duration: 1500
-            });
-        }
+        map.flyTo({
+            center: [building.coordinates.lng, building.coordinates.lat],
+            zoom: 17,
+            duration: 1500
+        });
 
     } catch (error) {
-        showError('Failed to load access information.');
-        console.error('Error loading access info:', error);
+        showError('Failed to load building information.');
+        console.error('Error loading building info:', error);
     }
 }
 
@@ -289,9 +292,19 @@ async function showBuildingAccess(buildingId) {
 function setupEventListeners() {
     findRouteBtn.addEventListener('click', findRoute);
     useCurrentTimeBtn.addEventListener('click', setCurrentTime);
+    togglePanelBtn.addEventListener('click', () => {
+        const panel = document.querySelector('.route-panel .panel-content');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        togglePanelBtn.textContent = panel.style.display === 'none' ? '+' : '−';
+    });
+    closeResultBtn.addEventListener('click', () => routeResult.classList.add('hidden'));
+    closeInfoBtn.addEventListener('click', () => buildingInfo.classList.add('hidden'));
+    fromTypeSelect.addEventListener('change', (e) => {
+        fromBuildingSelect.style.display = e.target.value === 'building' ? 'block' : 'none';
+    });
 }
 
-// Set current time in datetime input
+// Set current time
 function setCurrentTime() {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
@@ -303,30 +316,43 @@ function setCurrentTime() {
 function updateCurrentTimeDisplay() {
     const now = new Date();
     const options = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
+        weekday: 'short',
+        month: 'short',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+        minute: '2-digit'
     };
     currentTimeDisplay.textContent = now.toLocaleDateString('en-US', options);
 }
 
-// Find route between buildings
+// Find route
 async function findRoute() {
-    const from = fromBuildingSelect.value;
+    const fromType = fromTypeSelect.value;
     const to = toBuildingSelect.value;
     const dateTime = routeTimeInput.value;
 
+    let from = fromBuildingSelect.value;
+    let startCoords = null;
+
     // Validation
-    if (!from || !to) {
-        showError('Please select both starting building and destination.');
+    if (fromType === 'current') {
+        if (!userLocation) {
+            showError('Location not available. Please enable location services.');
+            return;
+        }
+        from = findNearestBuilding();
+        startCoords = userLocation;
+    } else if (!from) {
+        showError('Please select a starting building.');
         return;
     }
 
-    if (from === to) {
+    if (!to) {
+        showError('Please select a destination.');
+        return;
+    }
+
+    if (from === to && fromType === 'building') {
         showError('Starting building and destination cannot be the same.');
         return;
     }
@@ -336,15 +362,10 @@ async function findRoute() {
         return;
     }
 
-    hideError();
-    routeResult.classList.add('hidden');
-
     try {
         const response = await fetch(`${API_BASE}/route`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ from, to, dateTime })
         });
 
@@ -355,8 +376,8 @@ async function findRoute() {
             return;
         }
 
-        displayRoute(data);
-        drawRouteOnMap(data);
+        displayRoute(data, fromType === 'current' ? 'Your Location' : null);
+        drawRouteOnMap(data, startCoords);
 
     } catch (error) {
         showError('Failed to calculate route. Please try again.');
@@ -364,19 +385,38 @@ async function findRoute() {
     }
 }
 
+// Find nearest building to current location
+function findNearestBuilding() {
+    if (!userLocation) return null;
+
+    let nearest = null;
+    let minDist = Infinity;
+
+    buildings.forEach(building => {
+        const dist = Math.sqrt(
+            Math.pow(building.coordinates.lat - userLocation.lat, 2) +
+            Math.pow(building.coordinates.lng - userLocation.lng, 2)
+        );
+        if (dist < minDist) {
+            minDist = dist;
+            nearest = building.id;
+        }
+    });
+
+    return nearest;
+}
+
 // Display route results
-function displayRoute(routeData) {
-    const fromBuilding = buildings.find(b => b.id === fromBuildingSelect.value);
+function displayRoute(routeData, customStart) {
+    const fromText = customStart || buildings.find(b => b.id === fromBuildingSelect.value).name;
     const toBuilding = buildings.find(b => b.id === toBuildingSelect.value);
 
-    // Summary
     routeSummary.innerHTML = `
-        <p><strong>From:</strong> ${fromBuilding.name}</p>
+        <p><strong>From:</strong> ${fromText}</p>
         <p><strong>To:</strong> ${toBuilding.name}</p>
-        <p class="estimated-time">⏱️ Estimated Time: ${routeData.estimatedMinutes} minutes</p>
+        <p class="estimated-time">⏱️ ${routeData.estimatedMinutes} min</p>
     `;
 
-    // Steps
     const stepsHTML = routeData.route.steps.map((step, index) => {
         let stepClass = 'step';
         if (step.type === 'start') stepClass += ' step-start';
@@ -391,29 +431,20 @@ function displayRoute(routeData) {
     }).join('');
 
     routeSteps.innerHTML = stepsHTML;
-
-    // Check for any warnings
     checkRouteWarnings(routeData);
-
-    // Show result
     routeResult.classList.remove('hidden');
-    routeResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// Check for route warnings (e.g., card required)
+// Check for route warnings
 function checkRouteWarnings(routeData) {
     const warnings = [];
 
-    // Check if any entrance requires card
     routeData.route.path.forEach(entranceId => {
-        const building = buildings.find(b =>
-            b.entrances.some(e => e.id === entranceId)
-        );
-
+        const building = buildings.find(b => b.entrances.some(e => e.id === entranceId));
         if (building) {
             const entrance = building.entrances.find(e => e.id === entranceId);
             if (entrance && entrance.requiresCard) {
-                warnings.push(`${building.name} (${entrance.name}) requires a Husky Card`);
+                warnings.push(`${building.name} - ${entrance.name} requires Husky Card`);
             }
         }
     });
@@ -430,20 +461,14 @@ function checkRouteWarnings(routeData) {
     }
 }
 
-// Show error message
+// Show error toast
 function showError(message) {
-    errorMessage.textContent = message;
-    errorMessage.classList.remove('hidden');
-    errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    errorToast.textContent = message;
+    errorToast.classList.remove('hidden');
+    setTimeout(() => {
+        errorToast.classList.add('hidden');
+    }, 4000);
 }
-
-// Hide error message
-function hideError() {
-    errorMessage.classList.add('hidden');
-}
-
-// Make showBuildingAccess globally accessible
-window.showBuildingAccess = showBuildingAccess;
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
