@@ -17,6 +17,7 @@ router.get('/buildings', (req, res) => {
     entrances: building.entrances.map(e => ({
       id: e.id,
       name: e.name,
+      coordinates: e.coordinates,
       requiresCard: e.requiresCard
     }))
   }));
