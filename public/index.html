@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Huaky Maps</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
     <link rel="stylesheet" href="style.css">
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
@@ -11,6 +14,7 @@
 <body>
     <!-- Full-screen map -->
     <div id="map"></div>
+    <div class="map-overlay"></div>
 
     <!-- Floating header -->
     <div class="floating-header">
@@ -24,10 +28,14 @@
     <!-- Floating route planner -->
     <div class="floating-panel route-panel">
         <div class="panel-header">
-            <h2>Plan Your Route</h2>
+            <div>
+                <p class="eyebrow">Campus directions</p>
+                <h2>Plan Your Route</h2>
+            </div>
             <button id="toggle-panel" class="toggle-btn">−</button>
         </div>
         <div class="panel-content">
+            <p class="panel-subtitle">Pick a start, a destination, and the time you want to walk. Tap any building pin to preview entrances.</p>
             <div class="form-group">
                 <label for="from-type">From:</label>
                 <div class="input-group">
@@ -63,10 +71,14 @@
     <!-- Floating route result -->
     <div id="route-result" class="floating-panel result-panel hidden">
         <div class="panel-header">
-            <h2>Your Route</h2>
+            <div>
+                <p class="eyebrow">Best path found</p>
+                <h2>Your Route</h2>
+            </div>
             <button id="close-result" class="toggle-btn">×</button>
         </div>
         <div class="panel-content">
+            <p class="panel-subtitle">Steps are optimized for current access rules. Bring your Husky Card for restricted doors.</p>
             <div id="route-summary" class="route-summary"></div>
             <div id="route-steps" class="route-steps"></div>
             <div id="route-warnings" class="route-warnings hidden"></div>
@@ -79,7 +91,10 @@
     <!-- Building info panel -->
     <div id="building-info" class="floating-panel info-panel hidden">
         <div class="panel-header">
-            <h3 id="building-name"></h3>
+            <div>
+                <p class="eyebrow">Entrances & access</p>
+                <h3 id="building-name"></h3>
+            </div>
             <button id="close-info" class="toggle-btn">×</button>
         </div>
         <div class="panel-content">

@@ -10,6 +10,26 @@ let map = null;
 let markers = [];
 let currentLocationMarker = null;
 let userLocation = null;
+let routeAnimationFrame = null;
+
+// Dash config tuned to feel consistent on screen at different zooms
+function getDashConfig() {
+    if (!map) return { dashLength: 4, dashGap: 3 };
+
+    const baseDashPx = 24; // target pixel length for dash at base zoom
+    const baseGapPx = 14;  // target pixel gap at base zoom
+    const baseZoom = 15;   // reference zoom
+    const zoom = map.getZoom();
+
+    // Scale so apparent screen length stays similar when zooming out/in
+    const zoomScale = Math.pow(2, baseZoom - zoom);
+    const lineWidth = map.getPaintProperty('route-core', 'line-width') || 6;
+
+    return {
+        dashLength: (baseDashPx * zoomScale) / lineWidth,
+        dashGap: (baseGapPx * zoomScale) / lineWidth
+    };
+}
 
 // DOM Elements
 const fromTypeSelect = document.getElementById('from-type');
@@ -126,13 +146,15 @@ function addBuildingMarkers() {
 // Draw route on map
 function drawRouteOnMap(routeData, fromCoords) {
     // Clear existing route
-    if (map.getLayer('route')) map.removeLayer('route');
-    if (map.getLayer('route-background')) map.removeLayer('route-background');
+    ['route-core', 'route-outline', 'route-glow'].forEach(id => {
+        if (map.getLayer(id)) map.removeLayer(id);
+    });
     if (map.getSource('route')) map.removeSource('route');
 
     // Stop existing animation
-    if (window.routeAnimationInterval) {
-        clearInterval(window.routeAnimationInterval);
+    if (routeAnimationFrame) {
+        cancelAnimationFrame(routeAnimationFrame);
+        routeAnimationFrame = null;
     }
 
     // Remove previous start/end markers
@@ -176,6 +198,7 @@ function drawRouteOnMap(routeData, fromCoords) {
     // Add route line
     map.addSource('route', {
         type: 'geojson',
+        lineMetrics: true, // enable line-progress for gradients
         data: {
             type: 'Feature',
             properties: {},
@@ -186,9 +209,9 @@ function drawRouteOnMap(routeData, fromCoords) {
         }
     });
 
-    // Background line (solid)
+    // Deep glow
     map.addLayer({
-        id: 'route-background',
+        id: 'route-glow',
         type: 'line',
         source: 'route',
         layout: {
@@ -196,55 +219,114 @@ function drawRouteOnMap(routeData, fromCoords) {
             'line-cap': 'round'
         },
         paint: {
-            'line-color': '#2e7d32',
+            'line-color': '#7bff9f',
+            'line-width': 26,
+            'line-opacity': 0.32,
+            'line-blur': 30
+        }
+    });
+
+    // Outline to sharpen edges against the map
+    map.addLayer({
+        id: 'route-outline',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#a8ffd0',
+            'line-width': 9,
+            'line-opacity': 0.9,
+            'line-blur': 1
+        }
+    });
+
+    // Main route line with animated gradient and flowing dashes
+    map.addLayer({
+        id: 'route-core',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#5bff8a', // fallback if gradient unavailable
             'line-width': 8,
-            'line-opacity': 0.4
-        }
-    });
-
-    // Main route line with animated dashes
-    map.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        paint: {
-            'line-color': '#4caf50',
-            'line-width': 6,
             'line-opacity': 1,
-            'line-dasharray': [0, 4, 3]
+            'line-dasharray': [0, 10, 6],
+            'line-gradient': ['interpolate', ['linear'], ['line-progress'],
+                0, 'rgba(155, 255, 0, 1)',
+                0.25, 'rgba(76, 255, 116, 1)',
+                0.5, 'rgba(0, 255, 153, 1)',
+                0.75, 'rgba(179, 255, 92, 1)',
+                1, 'rgba(81, 255, 163, 1)'
+            ]
         }
     });
 
-    // Animate the dash offset
-    let dashArraySequence = [
-        [0, 4, 3],
-        [0.5, 4, 2.5],
-        [1, 4, 2],
-        [1.5, 4, 1.5],
-        [2, 4, 1],
-        [2.5, 4, 0.5],
-        [3, 4, 0]
-    ];
-    let step = 0;
+    // Normalize dash sizing to current zoom before starting animation
+    const initialDash = getDashConfig();
+    map.setPaintProperty('route-core', 'line-dasharray', [0, initialDash.dashLength, initialDash.dashGap]);
 
-    function animateDashArray(timestamp) {
-        step = (step + 1) % dashArraySequence.length;
-        if (map.getLayer('route')) {
-            map.setPaintProperty('route', 'line-dasharray', dashArraySequence[step]);
+    // Animated flow: glowing pulse, hue-shifting gradient, breathing outline, and smooth dash drift
+    let startTime = null;
+    const gradientCycle = 6000; // ms for full hue sweep
+    const dashCycle = 1800;
+    const glowCycle = 1200;
+
+    const buildGradient = (t) => {
+        // Rotate through a cool hue range for a neon ribbon feel
+        const colorAt = (offset) => {
+            const phase = (t + offset) % 1;
+            const hue = Math.round(110 + 60 * Math.sin(2 * Math.PI * phase)); // neon green band
+            const lightness = 55 + 30 * Math.cos(2 * Math.PI * phase); // deeper lows and brighter highs
+            return `hsl(${hue}, 98%, ${lightness}%)`;
+        };
+
+        return [
+            'interpolate', ['linear'], ['line-progress'],
+            0, colorAt(0),
+            0.5, colorAt(0.33),
+            1, colorAt(0.66)
+        ];
+    };
+
+    const animateRoute = (timestamp) => {
+        if (startTime === null) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+
+        // Recompute dash sizing to keep strokes consistent at any zoom
+        const { dashLength, dashGap } = getDashConfig();
+        const dashOffset = (elapsed % dashCycle) / dashCycle * (dashLength + dashGap);
+
+        // Pulsing glow and outline breathe slightly for depth
+        const glowPulse = 0.16 + 0.08 * Math.sin((elapsed % glowCycle) / glowCycle * Math.PI * 2);
+        const outlinePulse = 0.6 + 0.08 * Math.sin((elapsed % (glowCycle * 1.5)) / (glowCycle * 1.5) * Math.PI * 2);
+
+        // Hue-shifting gradient traveling along the path
+        const gradientPhase = (elapsed % gradientCycle) / gradientCycle;
+
+        if (map.getLayer('route-core')) {
+            map.setPaintProperty('route-core', 'line-dasharray', [dashOffset, dashLength, dashGap]);
+            map.setPaintProperty('route-core', 'line-gradient', buildGradient(gradientPhase));
         }
-    }
 
-    // Clear any existing animation
-    if (window.routeAnimationInterval) {
-        clearInterval(window.routeAnimationInterval);
-    }
+        if (map.getLayer('route-glow')) {
+            map.setPaintProperty('route-glow', 'line-opacity', glowPulse);
+            map.setPaintProperty('route-glow', 'line-width', 20 + 6 * glowPulse);
+        }
 
-    // Start animation (update every 100ms for smooth motion)
-    window.routeAnimationInterval = setInterval(animateDashArray, 100);
+        if (map.getLayer('route-outline')) {
+            map.setPaintProperty('route-outline', 'line-opacity', outlinePulse);
+        }
+
+        routeAnimationFrame = requestAnimationFrame(animateRoute);
+    };
+
+    routeAnimationFrame = requestAnimationFrame(animateRoute);
 
     // Start marker
     const startEl = document.createElement('div');
@@ -364,11 +446,13 @@ function setupEventListeners() {
     closeResultBtn.addEventListener('click', () => {
         routeResult.classList.add('hidden');
         // Clear route from map
-        if (map.getLayer('route')) map.removeLayer('route');
-        if (map.getLayer('route-background')) map.removeLayer('route-background');
+        ['route-core', 'route-outline', 'route-glow'].forEach(id => {
+            if (map.getLayer(id)) map.removeLayer(id);
+        });
         if (map.getSource('route')) map.removeSource('route');
-        if (window.routeAnimationInterval) {
-            clearInterval(window.routeAnimationInterval);
+        if (routeAnimationFrame) {
+            cancelAnimationFrame(routeAnimationFrame);
+            routeAnimationFrame = null;
         }
         // Remove route markers
         const oldMarkers = document.querySelectorAll('.route-marker');
