@@ -127,7 +127,13 @@ function addBuildingMarkers() {
 function drawRouteOnMap(routeData, fromCoords) {
     // Clear existing route
     if (map.getLayer('route')) map.removeLayer('route');
+    if (map.getLayer('route-background')) map.removeLayer('route-background');
     if (map.getSource('route')) map.removeSource('route');
+
+    // Stop existing animation
+    if (window.routeAnimationInterval) {
+        clearInterval(window.routeAnimationInterval);
+    }
 
     // Remove previous start/end markers
     const oldMarkers = document.querySelectorAll('.route-marker');
@@ -180,6 +186,23 @@ function drawRouteOnMap(routeData, fromCoords) {
         }
     });
 
+    // Background line (solid)
+    map.addLayer({
+        id: 'route-background',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#2e7d32',
+            'line-width': 8,
+            'line-opacity': 0.4
+        }
+    });
+
+    // Main route line with animated dashes
     map.addLayer({
         id: 'route',
         type: 'line',
@@ -191,9 +214,37 @@ function drawRouteOnMap(routeData, fromCoords) {
         paint: {
             'line-color': '#4caf50',
             'line-width': 6,
-            'line-opacity': 0.9
+            'line-opacity': 1,
+            'line-dasharray': [0, 4, 3]
         }
     });
+
+    // Animate the dash offset
+    let dashArraySequence = [
+        [0, 4, 3],
+        [0.5, 4, 2.5],
+        [1, 4, 2],
+        [1.5, 4, 1.5],
+        [2, 4, 1],
+        [2.5, 4, 0.5],
+        [3, 4, 0]
+    ];
+    let step = 0;
+
+    function animateDashArray(timestamp) {
+        step = (step + 1) % dashArraySequence.length;
+        if (map.getLayer('route')) {
+            map.setPaintProperty('route', 'line-dasharray', dashArraySequence[step]);
+        }
+    }
+
+    // Clear any existing animation
+    if (window.routeAnimationInterval) {
+        clearInterval(window.routeAnimationInterval);
+    }
+
+    // Start animation (update every 100ms for smooth motion)
+    window.routeAnimationInterval = setInterval(animateDashArray, 100);
 
     // Start marker
     const startEl = document.createElement('div');
@@ -310,7 +361,19 @@ function setupEventListeners() {
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
         togglePanelBtn.textContent = panel.style.display === 'none' ? '+' : '−';
     });
-    closeResultBtn.addEventListener('click', () => routeResult.classList.add('hidden'));
+    closeResultBtn.addEventListener('click', () => {
+        routeResult.classList.add('hidden');
+        // Clear route from map
+        if (map.getLayer('route')) map.removeLayer('route');
+        if (map.getLayer('route-background')) map.removeLayer('route-background');
+        if (map.getSource('route')) map.removeSource('route');
+        if (window.routeAnimationInterval) {
+            clearInterval(window.routeAnimationInterval);
+        }
+        // Remove route markers
+        const oldMarkers = document.querySelectorAll('.route-marker');
+        oldMarkers.forEach(m => m.remove());
+    });
     closeInfoBtn.addEventListener('click', () => buildingInfo.classList.add('hidden'));
     fromTypeSelect.addEventListener('change', (e) => {
         fromBuildingSelect.style.display = e.target.value === 'building' ? 'block' : 'none';
