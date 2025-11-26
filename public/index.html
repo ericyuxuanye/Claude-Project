@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UW Campus Navigation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 UW Campus Navigation</h1>
+            <p class="subtitle">Smart routing with time-based building access</p>
+        </header>
+
+        <main>
+            <div class="route-planner">
+                <h2>Plan Your Route</h2>
+
+                <div class="form-group">
+                    <label for="from-building">From:</label>
+                    <select id="from-building" class="building-select">
+                        <option value="">Select starting building...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="to-building">To:</label>
+                    <select id="to-building" class="building-select">
+                        <option value="">Select destination...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="route-time">Time:</label>
+                    <input type="datetime-local" id="route-time" class="time-input">
+                    <button id="use-current-time" class="btn-secondary">Use Current Time</button>
+                </div>
+
+                <button id="find-route" class="btn-primary">Find Route</button>
+            </div>
+
+            <div id="route-result" class="route-result hidden">
+                <h2>Your Route</h2>
+                <div id="route-summary" class="route-summary"></div>
+                <div id="route-steps" class="route-steps"></div>
+                <div id="route-warnings" class="route-warnings"></div>
+            </div>
+
+            <div id="error-message" class="error-message hidden"></div>
+
+            <div class="building-access">
+                <h2>Building Access Information</h2>
+                <p class="info-text">Click on a building to see entrance access schedules</p>
+                <div id="building-list" class="building-list"></div>
+            </div>
+
+            <div id="access-details" class="access-details hidden">
+                <h3 id="access-building-name"></h3>
+                <div id="entrance-access-list"></div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="current-time">
+                <strong>Current Time:</strong> <span id="current-time-display"></span>
+            </div>
+            <p class="footer-note">Access times are subject to change. Always check building hours before your visit.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

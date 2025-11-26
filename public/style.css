@@ -1,0 +1,402 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    background: linear-gradient(135deg, #4b2e83 0%, #85754d 100%); /* UW Purple and Gold */
+    color: #333;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* Header */
+header {
+    background: #4b2e83; /* UW Purple */
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+/* Main Content */
+main {
+    padding: 30px;
+}
+
+h2 {
+    color: #4b2e83;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+h3 {
+    color: #4b2e83;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+}
+
+/* Route Planner */
+.route-planner {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border: 2px solid #e9ecef;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #4b2e83;
+}
+
+.building-select,
+.time-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    background: white;
+    transition: border-color 0.3s;
+}
+
+.building-select:focus,
+.time-input:focus {
+    outline: none;
+    border-color: #4b2e83;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-secondary {
+    padding: 12px 24px;
+    font-size: 1em;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #4b2e83;
+    color: white;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    background: #3a2365;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(75, 46, 131, 0.3);
+}
+
+.btn-secondary {
+    background: #85754d; /* UW Gold */
+    color: white;
+    margin-top: 10px;
+}
+
+.btn-secondary:hover {
+    background: #6e6140;
+}
+
+/* Route Result */
+.route-result {
+    background: #e8f5e9;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border-left: 4px solid #4caf50;
+}
+
+.route-summary {
+    background: white;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.route-summary p {
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+
+.route-summary strong {
+    color: #4b2e83;
+}
+
+.estimated-time {
+    font-size: 1.3em;
+    color: #4caf50;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Route Steps */
+.route-steps {
+    background: white;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+.step {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 3px solid #4b2e83;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.step:last-child {
+    margin-bottom: 0;
+}
+
+.step-number {
+    display: inline-block;
+    background: #4b2e83;
+    color: white;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.step-start {
+    border-left-color: #4caf50;
+}
+
+.step-end {
+    border-left-color: #f44336;
+}
+
+/* Warnings */
+.route-warnings {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+.route-warnings h4 {
+    color: #856404;
+    margin-bottom: 10px;
+}
+
+.warning-item {
+    padding: 8px;
+    margin: 5px 0;
+    background: white;
+    border-radius: 4px;
+}
+
+/* Error Message */
+.error-message {
+    background: #f8d7da;
+    border: 2px solid #f5c6cb;
+    color: #721c24;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+/* Building Access Section */
+.building-access {
+    margin-top: 40px;
+}
+
+.info-text {
+    color: #666;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.building-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.building-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.building-card:hover {
+    border-color: #4b2e83;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.building-card h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+.entrance-count {
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Access Details */
+.access-details {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border: 2px solid #4b2e83;
+}
+
+.entrance-item {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #dee2e6;
+}
+
+.entrance-item h4 {
+    color: #4b2e83;
+    margin-bottom: 10px;
+}
+
+.entrance-accessible {
+    border-left-color: #4caf50;
+}
+
+.entrance-restricted {
+    border-left-color: #f44336;
+}
+
+.access-status {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.status-open {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.status-closed {
+    background: #ffcdd2;
+    color: #c62828;
+}
+
+.access-schedule {
+    margin-top: 10px;
+    font-size: 0.95em;
+}
+
+.schedule-day {
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.schedule-day:last-child {
+    border-bottom: none;
+}
+
+.day-name {
+    display: inline-block;
+    width: 120px;
+    font-weight: 600;
+    color: #4b2e83;
+}
+
+.card-required {
+    display: inline-block;
+    background: #fff3cd;
+    color: #856404;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    margin-left: 10px;
+}
+
+/* Footer */
+footer {
+    background: #f8f9fa;
+    padding: 20px 30px;
+    border-top: 2px solid #dee2e6;
+    text-align: center;
+}
+
+.current-time {
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.current-time strong {
+    color: #4b2e83;
+}
+
+.footer-note {
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    header h1 {
+        font-size: 1.8em;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    .building-list {
+        grid-template-columns: 1fr;
+    }
+}
