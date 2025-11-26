@@ -171,11 +171,17 @@ function findBuildingByEntranceId(entranceId) {
 // Build step-by-step directions
 function buildSteps(path) {
   const steps = [];
+  let previousBuildingId = null;
 
   for (let i = 0; i < path.length; i++) {
     const entranceId = path[i];
     const entrance = findEntranceById(entranceId);
     const building = findBuildingByEntranceId(entranceId);
+
+    // Skip if same building as previous (unless it's start or end)
+    if (i > 0 && i < path.length - 1 && building.id === previousBuildingId) {
+      continue;
+    }
 
     if (i === 0) {
       steps.push({
@@ -196,9 +202,11 @@ function buildSteps(path) {
         type: 'waypoint',
         location: building.name,
         entrance: entrance.name,
-        description: `Pass through ${building.name} (${entrance.name})`
+        description: `Walk to ${building.name} (${entrance.name})`
       });
     }
+
+    previousBuildingId = building.id;
   }
 
   return steps;

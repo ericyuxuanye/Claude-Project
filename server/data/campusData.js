@@ -203,37 +203,42 @@ const buildings = {
 };
 
 // Campus pathways - connections between locations with walking time
+// Based on actual UW campus walking paths
 const pathways = [
-  // Suzzallo connections
+  // Red Square area - Suzzallo and Kane are adjacent
   { from: 'suzzallo-main', to: 'suzzallo-side', distance: 50, time: 1 },
-  { from: 'suzzallo-main', to: 'kane-main', distance: 150, time: 2 },
-  { from: 'suzzallo-main', to: 'ode-main', distance: 100, time: 2 },
-  { from: 'suzzallo-main', to: 'mgh-main', distance: 120, time: 2 },
+  { from: 'suzzallo-main', to: 'kane-main', distance: 100, time: 2 },
+  { from: 'suzzallo-side', to: 'kane-north', distance: 80, time: 1 },
 
-  // Odegaard connections
-  { from: 'ode-main', to: 'mgh-main', distance: 80, time: 1 },
-  { from: 'ode-main', to: 'iec-main', distance: 150, time: 3 },
-  { from: 'ode-main', to: 'hub-main', distance: 200, time: 4 },
-
-  // CSE connections
-  { from: 'cse-main', to: 'cse-gates', distance: 40, time: 1 },
-  { from: 'cse-main', to: 'hub-main', distance: 180, time: 4 },
-  { from: 'cse-gates', to: 'hub-main', distance: 170, time: 3 },
-
-  // HUB connections
-  { from: 'hub-main', to: 'iec-main', distance: 100, time: 2 },
-  { from: 'hub-main', to: 'mgh-main', distance: 150, time: 3 },
-
-  // Kane connections
+  // Kane Hall connections
   { from: 'kane-main', to: 'kane-north', distance: 30, time: 1 },
-  { from: 'kane-north', to: 'suzzallo-side', distance: 100, time: 2 },
-  { from: 'kane-main', to: 'mgh-main', distance: 130, time: 3 },
+  { from: 'kane-main', to: 'mgh-main', distance: 90, time: 2 },
 
-  // IEC connections
-  { from: 'iec-main', to: 'mgh-main', distance: 90, time: 2 },
+  // Mary Gates and Odegaard are very close (north of Red Square)
+  { from: 'mgh-main', to: 'ode-main', distance: 60, time: 1 },
+  { from: 'mgh-main', to: 'suzzallo-main', distance: 110, time: 2 },
 
-  // Mary Gates Hall connections
-  { from: 'mgh-main', to: 'hub-main', distance: 110, time: 2 }
+  // Odegaard to Red Square buildings
+  { from: 'ode-main', to: 'kane-main', distance: 120, time: 2 },
+  { from: 'ode-main', to: 'suzzallo-main', distance: 100, time: 2 },
+
+  // IEC is central, connects multiple buildings
+  { from: 'iec-main', to: 'mgh-main', distance: 80, time: 2 },
+  { from: 'iec-main', to: 'kane-main', distance: 130, time: 3 },
+  { from: 'iec-main', to: 'hub-main', distance: 90, time: 2 },
+
+  // HUB connections (south of central campus)
+  { from: 'hub-main', to: 'mgh-main', distance: 140, time: 3 },
+  { from: 'hub-main', to: 'kane-main', distance: 180, time: 4 },
+
+  // CSE is northeast, connects to HUB and IEC
+  { from: 'cse-main', to: 'cse-gates', distance: 40, time: 1 },
+  { from: 'cse-main', to: 'hub-main', distance: 160, time: 4 },
+  { from: 'cse-gates', to: 'hub-main', distance: 150, time: 3 },
+  { from: 'cse-main', to: 'iec-main', distance: 200, time: 4 },
+
+  // Additional connections for better routing
+  { from: 'ode-main', to: 'iec-main', distance: 140, time: 3 }
 ];
 
 module.exports = {
